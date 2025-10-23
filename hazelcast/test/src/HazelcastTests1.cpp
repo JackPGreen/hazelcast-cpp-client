@@ -74,3 +74,84 @@
 #include "ringbuffer/StartsWithStringFilter.h"
 #include "serialization/Serializables.h"
 #include "remote_controller_client.h"
+
+#if defined(WIN32) || defined(_WIN32) || defined(WIN64) || defined(_WIN64)
+#pragma warning(push)
+#pragma warning(disable : 4996) // for unsafe getenv
+#endif
+
+namespace hazelcast {
+namespace client {
+namespace test {
+extern std::shared_ptr<RemoteControllerClient> remoteController;
+
+class ClientStatisticsTest : public ClientTest
+{
+protected:
+    static const int STATS_PERIOD_SECONDS = 1;
+
+    static void SetUpTestCase()
+    {
+        instance = new HazelcastServer(default_server_factory());
+    }
+
+    static void TearDownTestCase()
+    {
+        delete instance;
+
+        instance = nullptr;
+    }
+
+    static Response get_client_stats_from_server()
+    {
+        constexpr const char* script_template =
+          ("clients = instance_0.getClientService().getConnectedClients()\n"
+           "for client in clients:\n"
+           "    if client.getName() == '%1%':\n"
+           "        result = client.getClientAttributes()\n"
+           "        break\n");
+
+        std::string script =
+          boost::str(boost::format(script_template) % get_test_name());
+
+        Response response;
+        remote_controller_client().executeOnController(
+          response,
+          default_server_factory().get_cluster_id(),
+          script,
+          Lang::PYTHON);
+        return response;
+    }
+
+    static std::string unescape_special_characters(const std::string& value)
+    {
+        std::string escapedValue = boost::replace_all_copy(value, "\\,", ",");
+        boost::replace_all(escapedValue, "\\=", "=");
+        boost::replace_all(escapedValue, "\\\\", "\\");
+        return escapedValue;
+    }
+
+    std::unordered_map<std::string, std::string> get_stats_from_response(
+      const Response& stats_response)
+    {
+        std::unordered_map<std::string, std::string> statsMap;
+        if (stats_response.success && !stats_response.result.empty()) {
+            std::vector<std::string> keyValuePairs;
+            boost::split(
+              keyValuePairs, stats_response.result, boost::is_any_of(","));
+
+            for (const auto& pair : keyValuePairs) {
+                std::vector<std::string> keyValuePair;
+                auto input = unescape_special_characters(pair);
+                boost::split(keyValuePair, input, boost::is_any_of("="));
+
+                if (keyValuePair.size() > 1) {
+                    statsMap[keyValuePair[0]] = keyValuePair[1];
+                } else {
+                    statsMap[keyValuePair[0]] = "";
+                }
+            }
+        }
+
+        return statsMap;
+    }
