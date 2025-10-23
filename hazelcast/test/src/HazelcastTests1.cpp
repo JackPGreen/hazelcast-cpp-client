@@ -155,3 +155,47 @@ protected:
 
         return statsMap;
     }
+
+    std::unordered_map<std::string, std::string> get_stats()
+    {
+        auto statsResponse = get_client_stats_from_server();
+
+        return get_stats_from_response(statsResponse);
+    }
+
+    bool verify_client_stats_from_server_is_not_empty()
+    {
+        auto response = get_client_stats_from_server();
+        return response.success && !response.result.empty();
+    }
+
+    std::unique_ptr<hazelcast_client> create_hazelcast_client()
+    {
+        client_config clientConfig;
+
+        clientConfig.set_instance_name(get_test_name());
+
+        clientConfig.set_property(client_properties::STATISTICS_ENABLED, "true")
+          .set_property(client_properties::STATISTICS_PERIOD_SECONDS,
+                        std::to_string(STATS_PERIOD_SECONDS))
+          // add IMap Near Cache config
+          .add_near_cache_config(config::near_cache_config(get_test_name()));
+
+        clientConfig.get_connection_strategy_config()
+          .get_retry_config()
+          .set_cluster_connect_timeout(std::chrono::seconds(20))
+          .set_initial_backoff_duration(std::chrono::milliseconds(100))
+          .set_max_backoff_duration(std::chrono::seconds(4))
+          .set_multiplier(3)
+          .set_jitter(0.8);
+
+        return std::unique_ptr<hazelcast_client>(
+          new hazelcast_client{ new_client(std::move(clientConfig)).get() });
+    }
+
+    void wait_for_first_statistics_collection()
+    {
+        ASSERT_TRUE_EVENTUALLY_WITH_TIMEOUT(
+          verify_client_stats_from_server_is_not_empty(),
+          3 * STATS_PERIOD_SECONDS);
+    }
