@@ -1,0 +1,32 @@
+name: Tag branch
+
+on:
+  workflow_dispatch:
+    inputs:
+      BRANCH_NAME:
+        description: The branch to create the tag from, if not implicit
+        required: false
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    env:
+      BRANCH_NAME: ${{ inputs.BRANCH_NAME }}
+    steps:
+      - name: Set branch name
+        if: env.BRANCH_NAME == ''
+        run: |
+          echo "BRANCH_NAME=${GITHUB_REF_NAME}" >> ${GITHUB_ENV}
+
+      - name: Calculate tag name
+        run: |
+          echo "TAG_NAME=v${BRANCH_NAME}" >> ${GITHUB_ENV}
+
+      - name: Tag `${{ env.BRANCH_NAME }}` as `${{ env.TAG_NAME }}`
+        run: |
+          git tag ${TAG_NAME} origin/${BRANCH_NAME}
+          git push origin ${TAG_NAME}
+
+      - name: Delete `${{ env.BRANCH_NAME }}`
+        run: |
+          git push origin --delete ${BRANCH_NAME}
