@@ -8,7 +8,7 @@ on:
         required: true
 
 jobs:
-  deploy:
+  pages:
     runs-on: ubuntu-latest
     env:
         GH_PAGES_BRANCH: gh-pages
@@ -43,7 +43,7 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
-          branch: ${GITHUB_REF_NAME}_doc_update
-          title: Add the new C++ client release ${GITHUB_REF_NAME} documentation
+          branch: ${{ github.ref_name }}_doc_update
+          title: Add the new C++ client release ${{ github.ref_name }} documentation
           body: ""
           path: ${{ env.GH_PAGES_BRANCH}}
