@@ -22,12 +22,13 @@ jobs:
             ref: ${{ env.GH_PAGES_BRANCH}}
             path: ${{ env.GH_PAGES_BRANCH}}
 
-        # https://github.com/mattnotmitt/doxygen-action/releases/tag/1.12.0
-      - name: Generate Doxygen documentation
-        # uses: mattnotmitt/doxygen-action@b84fe17600245bb5db3d6c247cc274ea98c15a3b
+      - name: Install Doxygen
         run: |
           sudo apt-get update
           sudo apt-get install doxygen
+
+      - name: Generate Doxygen documentation
+        run: |
           doxygen repo/Doxyfile
 
       - name: Post-process docs
@@ -35,15 +36,15 @@ jobs:
           mv docs/html ${GH_PAGES_BRANCH}/${{ inputs.VERSION }}
 
           # doc-index.html
-          sed -i '/Development Branch/a\<li><a href="https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/Reference_Manual.md">${{ inputs.VERSION }}</a></li>' ${GH_PAGES_BRANCH}/doc-index.html
+          sed -i "/Development Branch/a\<li><a href="https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/Reference_Manual.md">${{ inputs.VERSION }}</a></li>" ${GH_PAGES_BRANCH}/doc-index.html
 
           # api-index.html
-          sed -i '/<ul>/a\  <li><a href="${{ inputs.VERSION }}/index.html">${{ inputs.VERSION }}</a></li>' ${GH_PAGES_BRANCH}/api-index.html
+          sed -i "/<ul>/a\  <li><a href="${{ inputs.VERSION }}/index.html">${{ inputs.VERSION }}</a></li>" ${GH_PAGES_BRANCH}/api-index.html
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
-          branch: ${{ github.ref_name }}_doc_update
+          branch: ${{ github.ref_name }}_doc_update_run_${{ github.run_id }}
           title: Add the new C++ client release ${{ github.ref_name }} documentation
           body: ""
           path: ${{ env.GH_PAGES_BRANCH}}
