@@ -36,10 +36,10 @@ jobs:
           mv docs/html ${GH_PAGES_BRANCH}/${{ inputs.VERSION }}
 
           # doc-index.html
-          sed -i "/Development Branch/a\<li><a href="https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/Reference_Manual.md">${{ inputs.VERSION }}</a></li>" ${GH_PAGES_BRANCH}/doc-index.html
+          sed -i "/Development Branch/a\<li><a href=\"https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/Reference_Manual.md\">${{ inputs.VERSION }}</a></li>" ${GH_PAGES_BRANCH}/doc-index.html
 
           # api-index.html
-          sed -i "/<ul>/a\  <li><a href="${{ inputs.VERSION }}/index.html">${{ inputs.VERSION }}</a></li>" ${GH_PAGES_BRANCH}/api-index.html
+          sed -i "/<ul>/a\  <li><a href=\"${{ inputs.VERSION }}/index.html\">${{ inputs.VERSION }}</a></li>" ${GH_PAGES_BRANCH}/api-index.html
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
