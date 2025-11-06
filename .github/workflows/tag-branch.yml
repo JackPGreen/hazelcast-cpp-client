@@ -13,12 +13,15 @@ jobs:
     env:
       BRANCH_NAME: ${{ inputs.BRANCH_NAME }}
     steps:
-      - uses: actions/checkout@v5
-
       - name: Set branch name
         if: env.BRANCH_NAME == ''
         run: |
           echo "BRANCH_NAME=${GITHUB_REF_NAME}" >> ${GITHUB_ENV}
+
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.BRANCH_NAME }}
+          fetch-depth: 0
 
       - name: Calculate tag name
         run: |
