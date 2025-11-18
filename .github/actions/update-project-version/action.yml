@@ -21,6 +21,7 @@ runs:
         NEXT_VERSION: ${{ inputs.NEXT_VERSION }}
 
     - name: Print accessible environment variables
+      shell: bash
       env:
         GITHUB_CONTEXT: ${{ toJson(github) }}
       run: |
