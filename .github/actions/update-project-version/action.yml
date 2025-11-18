@@ -20,6 +20,13 @@ runs:
       env:
         NEXT_VERSION: ${{ inputs.NEXT_VERSION }}
 
+    - name: Print accessible environment variables
+      env:
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+      run: |
+        echo "$GITHUB_CONTEXT"
+        printenv
+
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v7
       with:
