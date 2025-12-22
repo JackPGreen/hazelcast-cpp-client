@@ -115,9 +115,7 @@ public:
      */
     std::vector<boost::optional<E>> results()
     {
-        std::vector<boost::optional<E>> result;
-        result.reserve(futures_.size());
-        auto result_futures = when_all(futures_.begin(), futures_.end());
+        std::vector<boost::optional<E>> result; result.reserve(futures_.size()); auto result_futures = when_all(futures_.begin(), futures_.end());
         for (auto& f : result_futures.get()) {
             result.emplace_back(f.get());
         }
